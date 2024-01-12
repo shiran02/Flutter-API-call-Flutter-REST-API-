@@ -1,8 +1,10 @@
 import 'dart:convert';
 
 import 'package:api_series/model/user.dart';
+import 'package:api_series/model/user_name.dart';
+import 'package:api_series/services/user_api.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+
 
 class HomeScreenTwo extends StatefulWidget {
   const HomeScreenTwo({super.key});
@@ -15,6 +17,13 @@ class _HomeScreenTwoState extends State<HomeScreenTwo> {
 
 
   List<User> users = [];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    fetchData();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +45,12 @@ class _HomeScreenTwoState extends State<HomeScreenTwo> {
           final gender =  user.gender;
           final phone = user.phone;
           final cell = user.cell;
-          final name = user.name.first;
+          final name = user.name.fullName();
+          final dob = user.dob.date.toString();
+          final street = user.userLocation.userStreet.name;
+          final city = user.userLocation.city;
+          final cordinate = user.userLocation.userCordinate.latitude;
+          final timezone = user.userLocation.userTimeZone.offset;
 
           final color = gender == 'male' ? Colors.pink :  Colors.blue;
 
@@ -49,61 +63,37 @@ class _HomeScreenTwoState extends State<HomeScreenTwo> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                 Text(name,style: TextStyle(color: Colors.black,fontSize: 23,fontWeight: FontWeight.bold),),
-                 Text(email,style: TextStyle(color: Colors.black,fontSize: 18,fontWeight: FontWeight.bold),),
-                 Text(gender.toString(),style: TextStyle(color: Colors.black,fontSize: 18),),
-                 Text(phone.toString(),style: TextStyle(color: Colors.black,fontSize: 18),),
-                 Text(cell.toString(),style: TextStyle(color: Colors.black,fontSize: 18),),
+                 Text('Name : ${name}',style: TextStyle(color: Colors.black,fontSize: 23,fontWeight: FontWeight.bold),),
+                 Text('email : ${email}',style: TextStyle(color: Colors.black,fontSize: 18,fontWeight: FontWeight.bold),),
+                 Text('gender : ${gender}'.toString(),style: TextStyle(color: Colors.black,fontSize: 18),),
+                 Text('phone : ${phone}'.toString(),style: TextStyle(color: Colors.black,fontSize: 18),),
+                 Text('Cell : ${cell.toString()}',style: TextStyle(color: Colors.black,fontSize: 18),),
+                 Text('street : ${street}',style: TextStyle(color: Colors.black,fontSize: 18),),
+                 Text('city : ${city}',style: TextStyle(color: Colors.black,fontSize: 18),),
+                 Text('state : ${dob.toString()}',style: TextStyle(color: Colors.black,fontSize: 18),),
+                 Text('country : ${dob.toString()}',style: TextStyle(color: Colors.black,fontSize: 18),),
+                 //Text('postcode : ${dob.toString()}',style: TextStyle(color: Colors.black,fontSize: 18),),
+                 Text('coordinates : ${cordinate}',style: TextStyle(color: Colors.black,fontSize: 18),),
+                 Text('timezone : ${timezone}',style: TextStyle(color: Colors.black,fontSize: 18),),
               ],
             ),
           );
 
         },
         ),
-
-      floatingActionButton: FloatingActionButton(
-        onPressed: fetchData
-        ),
     );
   }
 
 
-  Future<void> fetchData() async {
-      
-      const url = "https://randomuser.me/api/?results=20";
 
-      final uri = Uri.parse(url);
-      final response = await http.get(uri);
+  Future<void> fetchData() async{
+    final responce = await UserApi.fetchData();
 
-      final body  = response.body;
-
-      final json = jsonDecode(body);
-
-      final result = json['results'] as List<dynamic>;
-
-      final transform = result.map((e){
-
-        final nameObj = UserName(
-          title: e['name']['title'], 
-          first: e['name']['first'],
-          last: e['name']['last']
-        );
-
-
-
-        return User(
-          gender: e['gender'], 
-          email: e['email'], 
-          phone: e['phone'], 
-          cell: e['cell'],
-          name: nameObj,
-          );
-      }).toList();
-
-      setState(() {
-        users = transform;
-      });
-
+    setState(() {
+      users = responce;
+    });
   }
+
+
 
 }
